@@ -18,6 +18,8 @@ With the configuration below we can do shortcuts like:
 	SPC q c       ;; (vdiff)-close-fold, only when major vdiff-mode active
 	SPC q c       ;; (rust-mode)-rust-compile, only when major rust-mode active
 
+![leader key example](/leader-key.png?raw=true "Leader Key")
+
 # Configuration
 
 ## Mandatory configuration
