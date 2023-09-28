@@ -1,13 +1,13 @@
-;;; leader-key.el --- Leader key configuration for god-mode
+;;; leader-key.el --- Leader key configuration (e.g. for god-mode)
 
-;; Copyright (C) 2022 Łukasz Pawelczyk
+;; Copyright (C) 2022 Lukasz Pawelczyk
 
-;; Author: Łukasz Pawelczyk <havner@gmail.com>
-;; Maintainer: Łukasz Pawelczyk <havner@gmail.com
+;; Author: Lukasz Pawelczyk <havner@gmail.com>
+;; Maintainer: Lukasz Pawelczyk <havner@gmail.com>
 ;; URL: https://github.com/havner/leader-key
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "25.1"))
-;; Keywords: keys keybinding config leader god god-mode
+;; Keywords: convenience keys keybinding config leader god god-mode
 
 ;; This file is not part of GNU Emacs.
 
@@ -31,14 +31,14 @@
 
 ;; Simple helper to add leader key functionality (e.g. for god-mode)
 
-;; The idea is to replicate a vim/evil leader key concept, but be independant of
-;; any other mode. This has been developed and tested together with god-mode but
-;; should work without it or even without any modal mode. It works together with
-;; which-key, but the dependency is optional.
+;; The idea is to replicate a vim/evil leader key concept, but be independent of
+;; any other mode.  This has been developed and tested together with god-mode
+;; but should work without it or even without any modal mode.  It works together
+;; with which-key, but the dependency is optional.
 
 ;; With the configuration below we can do shortcuts like:
 
-;; SPC x q       ;; quits emacs
+;; SPC x q       ;; quits Emacs
 ;; SPC p p       ;; opens projectile project list
 ;; SPC <left>    ;; moves to the left window
 ;; SPC m         ;; opens magit
@@ -61,7 +61,7 @@
 ;;   (define-key god-local-mode-map (kbd leader-key-root-key) nil))
 
 ;; Configure the predicament that must be true for the leader-key to be
-;; triggered. Otherwise the key should fall back to its default function. In
+;; triggered.  Otherwise the key should fall back to its default function.  In
 ;; case of god-mode the below is a usable choice (activate when god-mode is
 ;; active or the buffer is read only):
 
@@ -75,16 +75,16 @@
 ;; (leader-key-mode t)
 
 ;; There are some major-modes that don't play well with leader, e.g. modes that
-;; are marked as read only yet we need the leader key to do its original
-;; job. One of such modes is vterm-mode. To handle such cases add this mode to
+;; are marked as read only yet we need the leader key to do its original job.
+;; One of such modes is vterm-mode.  To handle such cases add this mode to
 ;; exceptions:
 
 ;; (add-to-list 'leader-key-exempt-major-modes 'vterm-mode t)
 
 ;; There might also be some major-modes that can have our leader key already
 ;; mapped to something else and it conflicts with the leader-key in leader minor
-;; map. In such a case there is a helper function that will add our leader key
-;; directly to such a map. The second parameter for (leader-key-do-map) is
+;; map.  In such a case there is a helper function that will add our leader key
+;; directly to such a map.  The second parameter for (leader-key-do-map) is
 ;; optional, it will basically do (eval-after-load 2ND-PARAM) for that
 ;; expression so we don't need to handle the loading order.
 
@@ -92,8 +92,8 @@
 ;; (leader-key-do-map 'magit-blame-read-only-mode-map 'magit-blame)
 
 ;; There is no default for the map that will be triggered with leader-key, we
-;; need to build it ourselves. We can add whole submaps or just specific
-;; functions. Examples below:
+;; need to build it ourselves.  We can add whole submaps or just specific
+;; functions.  Examples below:
 
 ;; (with-eval-after-load 'projectile
 ;;   (leader-key-define-key "p" projectile-command-map "projectile"))
@@ -125,7 +125,7 @@
 ;; (leader-key-define-key "x x" #'execute-extended-command)
 
 ;; We can also have a sub map assigned that will be different dependent on the
-;; currently active major mode. This requires key and specific map assignment.
+;; currently active major mode.  This requires key and specific map assignment.
 
 ;; (setq leader-key-major-mode-key "q")        ;; redundant, "q" is default
 
@@ -157,7 +157,8 @@
 ;;; Code:
 
 (defgroup leader-key nil
-  "Leader key configuration.")
+  "Leader key configuration."
+  :group 'convenience)
 
 (defcustom leader-key-root-key
   "SPC"
@@ -177,13 +178,13 @@ Has to be `kbd' compatible string."
 
 (defcustom leader-key-root-description
   "<leader>"
-  "A leader root description visible when using `which-key'"
+  "A leader root description visible when using `which-key'."
   :group 'leader-key
   :type 'string)
 
 (defcustom leader-key-major-mode-description
   "<major>"
-  "A major mode description visible when using `which-key'"
+  "A major mode description visible when using `which-key'."
   :group 'leader-key
   :type 'string)
 
@@ -198,29 +199,35 @@ while in reality they are not, e.g. terminal modes."
 
 (defcustom leader-key-pred
   'leader-key--default-pred
-  "A function that defines when to activate `leader-key-map'
-after pressing `leader-key-root-key'.
+  "A function that defines predicate for `leader-key-map' activation.
 
-Most likely this will have to be redefined by the user as the default
-is not very usable. Please refer to the package readme."
+In other words, when will 'leader-key-map' activate after
+pressing `leader-key-root-key' and when the default key function
+will trigger.  Most likely this will have to be redefined by the
+user as the default is not very usable.  Please refer to the
+package readme."
   :group 'leader-key
   :type 'function)
 
 (defvar leader-key-map (make-sparse-keymap)
-  "Map containing all leader bindings. Conditionally bound under
-`leader-key-root-key' within `leader-key-mode-map'.")
+  "Map containing all leader bindings.
+
+Conditionally bound under `leader-key-root-key' within `leader-key-mode-map'.")
 
 (defvar leader-key-mode-map (make-sparse-keymap)
-  "Map for the `leader-key-mode'. Its only purpose is to conditionally
-enable `leader-key-map' after pressing `leader-key-root-key'.")
+  "Map for the `leader-key-mode'.
+
+Its only purpose is to conditionally enable `leader-key-map'
+after pressing `leader-key-root-key'.")
 
 ;;;###autoload
 (define-minor-mode leader-key-mode
   "Leader key mode.
 
-Enables `leader-key-mode-map' that has one binding: `leader-key-root-key'
-that conditionally triggers `leader-key-map'. The condition is configurable
-through `leader-key-pred' and `leader-key-exempt-major-modes'."
+Enables `leader-key-mode-map' that has one binding:
+`leader-key-root-key' that conditionally triggers
+`leader-key-map'.  The condition is configurable through
+`leader-key-pred' and `leader-key-exempt-major-modes'."
   :global t
   :group 'leader-key
   (define-key leader-key-mode-map (kbd leader-key-root-key)
@@ -246,6 +253,8 @@ through `leader-key-pred' and `leader-key-exempt-major-modes'."
 (defun leader-key--check-pred (cmd)
   "Final filtering function for the `leader-key-map'.
 
+The CMD param is internal for define-key/menu-item.
+
 See `leader-key-pred' and `leader-key-exempt-major-modes'."
   (if (leader-key--exempt-mode-pred) nil
     (if (funcall leader-key-pred) cmd)))
@@ -257,7 +266,10 @@ See `leader-key-pred' and `leader-key-exempt-major-modes'."
   "Setup `leader-key-map' in specific major-mode map.
 
 Use for some hybrid major-modes that are partially writeable and
-overload `leader-key-root-key'. E.g. `Custom-mode'."
+overload `leader-key-root-key'.  E.g. `Custom-mode'.
+
+MAP is the major mode map to define the 'leader-key-root-key' in.
+MODULE (when non-nil) will server as a parameter to `eval-after-load'."
   (if module
       (eval-after-load module
         `(define-key ,map (kbd leader-key-root-key) leader-key-map))
@@ -265,9 +277,13 @@ overload `leader-key-root-key'. E.g. `Custom-mode'."
 
 ;;;###autoload
 (defun leader-key-define-key (key fun &optional description)
-  "Add a new key to the `leader-key-map'. KEY is passed to `kbd'.
+  "Add a new key to the `leader-key-map'.  KEY is passed to `kbd'.
 
-This is the main function to build your own `leader-key-map'."
+This is the main function to build your own `leader-key-map'.
+
+FUN is a function or a map (see documentation) that is passed to
+`define-key' for the `leader-key-map'.
+DESCRIPTION is passed to which-key package if it's bound."
   (let ((k (kbd key))
         (s (concat leader-key-root-key " " key)))
     (define-key leader-key-map k fun)
@@ -291,7 +307,8 @@ This function allows to have a specific leader prefix (by default 'SPC q')
 that shows a different command map depending on active major-mode.
 
 MAP is major-mode map where the prefix will be active.
-COMMANDS is command map that will show under the prefix."
+COMMANDS is command map that will show under the prefix.
+MODULE (when non-nil) will server as a parameter to `eval-after-load'."
   (let ((prefix-map-name (intern (concat "leader-key--" (symbol-name commands)))))
     (eval `(defvar ,prefix-map-name (make-sparse-keymap)))
     (if module
@@ -304,3 +321,6 @@ COMMANDS is command map that will show under the prefix."
         (define-key (eval prefix-map-name) (kbd leader-key-major-mode-key) (eval commands))
         (define-key (eval map) (kbd leader-key-root-key)
           `(menu-item "" ,(eval prefix-map-name) :filter leader-key--check-pred))))))
+
+(provide 'leader-key)
+;;; leader-key.el ends here
