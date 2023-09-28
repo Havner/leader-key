@@ -29,76 +29,151 @@
 
 ;;; Commentary:
 
-;; Simple helper for god-mode to add leader key functionality.
+;; Simple helper to add leader key functionality (e.g. for god-mode)
 
 
 ;;; Code:
 
-(require 'god-mode)
+(defgroup leader-key nil
+  "Leader key configuration.")
 
-(defgroup god-leader nil
-  "Leader key configuration for god-mode."
-  :group 'god)
-
-(defvar god-leader-map (make-sparse-keymap))
-
-(defcustom god-leader-root-key
+(defcustom leader-key-root-key
   "SPC"
-  "A shortcut for the leader map, has to be `kbd' compatible string"
-  :group 'god-leader
+  "A shortcut for the `leader-key-map'.
+
+Has to be `kbd' compatible string."
+  :group 'leader-key
   :type 'string)
 
-(defcustom god-leader-root-description
-  "leader root"
+(defcustom leader-key-major-mode-key
+  "q"
+  "A sub shortcut for the major mode map within `leader-key-map'.
+
+Has to be `kbd' compatible string."
+  :group 'leader-key
+  :type 'string)
+
+(defcustom leader-key-root-description
+  "<leader>"
   "A leader root description visible when using `which-key'"
-  :group 'god-leader
+  :group 'leader-key
   :type 'string)
 
-(defcustom god-leader-maps
-  '((special-mode-map . simple)
-    (dired-mode-map . dired)
-    (custom-mode-map . cus-edit)
-    (finder-mode-map . finder)
-    (grep-mode-map . grep))
-  "List of cons of file/map or maps to add the leader key."
-  :group 'god-leader
-  :type '(alist))
+(defcustom leader-key-major-mode-description
+  "<major>"
+  "A major mode description visible when using `which-key'"
+  :group 'leader-key
+  :type 'string)
 
-;;;###autoload
-(defun god-leader-do-map (map)
-  "Add leader key to specific map."
-  (if (car-safe map)
-      (eval-after-load (cdr map)
-        `(define-key ,(car map) (kbd god-leader-root-key) god-leader-map))
-    (define-key (eval map) (kbd god-leader-root-key) god-leader-map)))
+(defcustom leader-key-exempt-major-modes
+  '(term-mode)
+  "List of major modes that should have `leader-key-root-key' disabled.
 
-;;;###autoload
-(defun god-leader-initialize ()
-  "Setup leader key shortcut."
-  (interactive)
-  (with-eval-after-load 'god-mode
-    (define-key god-local-mode-map (kbd god-leader-root-key) god-leader-map)
-    (when (fboundp 'which-key-add-key-based-replacements)
-      (which-key-add-key-based-replacements god-leader-root-key god-leader-root-description))
-    (dolist (map god-leader-maps)
-      (god-leader-do-map map))))
+This is for some strange modes that are e.g. marked as read-only,
+while in reality they are not, e.g. terminal modes."
+  :group 'leader-key
+  :type '(repeat symbol))
 
-;;;###autoload
-(defun god-leader-define-key (key fun &optional description)
-  "Add a new key to the leader map. KEY is passed to `kbd'."
+(defcustom leader-key-pred
+  'leader-key--default-pred
+  "A function that defines when to activate `leader-key-map'
+after pressing `leader-key-root-key'.
+
+Most likely this will have to be redefined by the user as the default
+is not very usable. Please refer to the package readme."
+  :group 'leader-key
+  :type 'function)
+
+(defvar leader-key-map (make-sparse-keymap)
+  "Map containing all leader bindings. Conditionally bound under
+`leader-key-root-key' within `leader-key-mode-map'.")
+
+(defvar leader-key-mode-map (make-sparse-keymap)
+  "Map for the `leader-key-mode'. Its only purpose is to conditionally
+enable `leader-key-map' after pressing `leader-key-root-key'.")
+
+(define-minor-mode leader-key-mode
+  "Leader key mode.
+
+Enables `leader-key-mode-map' that has one binding: `leader-key-root-key'
+that conditionally triggers `leader-key-map'. The condition is configurable
+through `leader-key-pred' and `leader-key-exempt-major-modes'."
+  :global t
+  :group 'leader-key
+  (define-key leader-key-mode-map (kbd leader-key-root-key)
+    `(menu-item "" ,leader-key-map :filter leader-key--check-pred))
+  (when (fboundp 'which-key-add-key-based-replacements)
+    (which-key-add-key-based-replacements
+      leader-key-root-key
+      leader-key-root-description)
+    (which-key-add-key-based-replacements
+      (concat leader-key-root-key " " leader-key-major-mode-key)
+      leader-key-major-mode-description)))
+
+;;; private functions
+
+(defun leader-key--default-pred ()
+  "Default predicate that controls whether `leader-key-root-key' is triggered."
+  buffer-read-only)
+
+(defun leader-key--exempt-mode-pred ()
+  "Return non-nil if `major-mode' is exempt from using leader-key."
+  (memq major-mode leader-key-exempt-major-modes))
+
+(defun leader-key--check-pred (cmd)
+  "Final filtering function for the `leader-key-map'.
+
+See `leader-key-pred' and `leader-key-exempt-major-modes'."
+  (if (leader-key--exempt-mode-pred) nil
+    (if (funcall leader-key-pred) cmd)))
+
+;;; public functions
+
+(defun leader-key-do-map (map &optional module)
+  "Setup `leader-key-map' in specific major-mode map.
+
+Use for some hybrid major-modes that are partially writeable and
+overload `leader-key-root-key'. E.g. `Custom-mode'."
+  (if module
+      (eval-after-load module
+        `(define-key ,map (kbd leader-key-root-key) leader-key-map))
+    (define-key (eval map) (kbd leader-key-root-key) leader-key-map)))
+
+(defun leader-key-define-key (key fun &optional description)
+  "Add a new key to the `leader-key-map'. KEY is passed to `kbd'.
+
+This is the main function to build your own `leader-key-map'."
   (let ((k (kbd key))
-        (s (concat god-leader-root-key " " key)))
-    (define-key god-leader-map k fun)
+        (s (concat leader-key-root-key " " key)))
+    (define-key leader-key-map k fun)
     (when (and description (fboundp 'which-key-add-key-based-replacements))
       (which-key-add-key-based-replacements s description))))
 
-;;;###autoload
-(defun god-leader-describe-key (key description)
-  "Add description to specific KEY."
-  (let ((s (concat god-leader-root-key " " key)))
+(defun leader-key-describe-key (key description)
+  "Add DESCRIPTION to specific KEY for `which-key'.
+
+This is useful to give names to key prefixes within `leader-key-map'."
+  (let ((s (concat leader-key-root-key " " key)))
     (when (fboundp 'which-key-add-key-based-replacements)
       (which-key-add-key-based-replacements s description))))
 
-(provide 'god-leader)
+(defun leader-key-major-mode-map (map commands &optional module)
+  "Add major mode command map under usable with `leader-key-major-mode-key'.
 
-;;; god-leader.el ends here
+This function allows to have a specific leader prefix (by default 'SPC q')
+that shows a different command map depending on active major-mode.
+
+MAP is major-mode map where the prefix will be active.
+COMMANDS is command map that will show under the prefix."
+  (let ((prefix-map-name (intern (concat "leader-key--" (symbol-name commands)))))
+    (eval `(defvar ,prefix-map-name (make-sparse-keymap)))
+    (if module
+        (eval-after-load module
+          `(progn
+             (define-key ,prefix-map-name (kbd leader-key-major-mode-key) ,commands)
+             (define-key ,map (kbd leader-key-root-key)
+               '(menu-item "" ,(eval prefix-map-name) :filter leader-key--check-pred))))
+      (progn
+        (define-key (eval prefix-map-name) (kbd leader-key-major-mode-key) (eval commands))
+        (define-key (eval map) (kbd leader-key-root-key)
+          `(menu-item "" ,(eval prefix-map-name) :filter leader-key--check-pred))))))
