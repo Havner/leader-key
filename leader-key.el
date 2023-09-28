@@ -91,6 +91,14 @@
 ;; (leader-key-do-map 'custom-mode-map 'cus-edit)
 ;; (leader-key-do-map 'magit-blame-read-only-mode-map 'magit-blame)
 
+;; An alternative configuration without any modal mode, where the leader key is
+;; always active with a M-SPC shortcut:
+
+;; (global-set-key (kbd "M-SPC") nil)       ;; so it doesn't conflict
+;; (setq leader-key-root-key "M-SPC")
+;; (setq leader-key-pred #'(lambda () t))   ;; always active
+;; (leader-key-mode t)
+
 ;; There is no default for the map that will be triggered with leader-key, we
 ;; need to build it ourselves.  We can add whole submaps or just specific
 ;; functions.  Examples below:
@@ -269,7 +277,7 @@ Use for some hybrid major-modes that are partially writeable and
 overload `leader-key-root-key'.  E.g. `Custom-mode'.
 
 MAP is the major mode map to define the 'leader-key-root-key' in.
-MODULE (when non-nil) will server as a parameter to `eval-after-load'."
+MODULE (when non-nil) will serve as a parameter to `eval-after-load'."
   (if module
       (eval-after-load module
         `(define-key ,map (kbd leader-key-root-key) leader-key-map))
@@ -308,7 +316,7 @@ that shows a different command map depending on active major-mode.
 
 MAP is major-mode map where the prefix will be active.
 COMMANDS is command map that will show under the prefix.
-MODULE (when non-nil) will server as a parameter to `eval-after-load'."
+MODULE (when non-nil) will serve as a parameter to `eval-after-load'."
   (let ((prefix-map-name (intern (concat "leader-key--" (symbol-name commands)))))
     (eval `(defvar ,prefix-map-name (make-sparse-keymap)))
     (if module

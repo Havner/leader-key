@@ -70,6 +70,16 @@ expression so we don't need to handle the loading order.
 	(leader-key-do-map 'custom-mode-map 'cus-edit)
 	(leader-key-do-map 'magit-blame-read-only-mode-map 'magit-blame)
 
+## Alternative configuration
+
+An alternative configuration without any modal mode, where the leader key is
+always active with a M-SPC shortcut:
+
+	(global-set-key (kbd "M-SPC") nil)       ;; so it doesn't conflict
+	(setq leader-key-root-key "M-SPC")
+	(setq leader-key-pred #'(lambda () t))   ;; always active
+	(leader-key-mode t)
+
 ## Building leader map
 
 There is no default for the map that will be triggered with leader-key, we
