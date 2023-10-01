@@ -1,6 +1,6 @@
 ;;; leader-key.el --- Leader key configuration (e.g. for god-mode)
 
-;; Copyright (C) 2022 Lukasz Pawelczyk
+;; Copyright (C) 2022-2023 Lukasz Pawelczyk
 
 ;; Author: Lukasz Pawelczyk <havner@gmail.com>
 ;; Maintainer: Lukasz Pawelczyk <havner@gmail.com>
@@ -11,9 +11,9 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This file is free software; you can redistribute it and/or modify
+;; This file is free software; you can redistribute It and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
