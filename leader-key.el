@@ -209,7 +209,7 @@ while in reality they are not, e.g. terminal modes."
   'leader-key--default-pred
   "A function that defines predicate for `leader-key-map' activation.
 
-In other words, when will 'leader-key-map' activate after
+In other words, when will `leader-key-map' activate after
 pressing `leader-key-root-key' and when the default key function
 will trigger.  Most likely this will have to be redefined by the
 user as the default is not very usable.  Please refer to the
@@ -271,12 +271,12 @@ See `leader-key-pred' and `leader-key-exempt-major-modes'."
 
 ;;;###autoload
 (defun leader-key-do-map (map &optional module)
-  "Setup `leader-key-map' in specific major-mode map.
+  "Setup `leader-key-map' in specific `major-mode' map.
 
 Use for some hybrid major-modes that are partially writeable and
 overload `leader-key-root-key'.  E.g. `Custom-mode'.
 
-MAP is the major mode map to define the 'leader-key-root-key' in.
+MAP is the major mode map to define the `leader-key-root-key' in.
 MODULE (when non-nil) will serve as a parameter to `eval-after-load'."
   (if module
       (eval-after-load module
@@ -312,7 +312,7 @@ This is useful to give names to key prefixes within `leader-key-map'."
   "Add major mode command map under usable with `leader-key-major-mode-key'.
 
 This function allows to have a specific leader prefix (by default 'SPC q')
-that shows a different command map depending on active major-mode.
+that shows a different command map depending on active `major-mode'.
 
 MAP is major-mode map where the prefix will be active.
 COMMANDS is command map that will show under the prefix.
